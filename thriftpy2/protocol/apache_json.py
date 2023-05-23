@@ -203,12 +203,20 @@ class TApacheJSONProtocol(TProtocolBase):
                         CTYPES[ttype]: [CTYPES[spec[0]], len(val)] + [self._thrift_to_dict(v, spec) for v in val]
                     }
                 elif ttype == TType.MAP:
-                    key_type = CTYPES[spec[0]]
-                    val_type = CTYPES[spec[1][0] if isinstance(spec[1], tuple) else spec[1]]
-                    # format is [key_type, value_type, length, dict]
+                    if isinstance(spec[0], int):
+                        key_type = spec[0]
+                        key_spec = None
+                    else:
+                        key_type, key_spec = spec[0]
+            
+                    if isinstance(spec[1], int):
+                        val_type = spec[1]
+                        val_spec = None
+                    else:
+                        val_type, val_spec = spec[1]
                     result[field_idx] = {
                         CTYPES[ttype]: [key_type, val_type, len(val),
-                                        {self._thrift_to_dict(k, spec[0]):
+                                        {self._thrift_to_dict(k, key_spec):
                                          self._thrift_to_dict(v, spec) for k, v in val.items()}]
                     }
                 elif ttype == TType.BINARY and TType.BINARY != TType.STRING:
